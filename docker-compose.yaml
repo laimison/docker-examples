@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  nginx-reverse:
+    container_name: nginx-reverse
+    hostname: nginx-reverse
+    build:
+      context: .
+      dockerfile: Dockerfile-nginx-reverse
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx-reverse/html:/usr/share/nginx/html
+      - ./nginx-reverse/conf.d:/etc/nginx/conf.d
+  php-apache:
+    container_name: php-apache
+    hostname: php-apache
+    build:
+      context: .
+      dockerfile: Dockerfile-php-apache
+    ports:
+      - 9001:80
+      - 9002:443
+    volumes:
+      - ./php-apache/html:/var/www/html
+      - ./php-apache/php.ini:/usr/local/etc/php/php.ini
+      - ./php-apache/default-ssl.conf:/etc/apache2/sites-available/default-ssl.conf
+      - ./php-apache/000-default.conf:/etc/apache2/sites-available/000-default.conf
+      - ./php-apache/ssl.conf:/etc/apache2/mods-available/ssl.conf
