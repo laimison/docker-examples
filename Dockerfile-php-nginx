@@ -1,5 +1,5 @@
 # https://hub.docker.com/_/php
-FROM php:7.3.4-stretch
+FROM php:7.3.4-fpm-stretch
 
 RUN apt update && apt install -y lsof vim curl netcat iputils-ping dnsutils procps
 
@@ -7,7 +7,8 @@ RUN mkdir -p /etc/ssl/certs /etc/ssl/private
 RUN openssl req -subj '/CN=example.com/O=Example Company/C=UK' -new -newkey rsa:2048 -sha256 -days 3650 -nodes -x509 -keyout /etc/ssl/private/server.key -out /etc/ssl/certs/server.crt
 RUN cat /etc/ssl/certs/server.crt /etc/ssl/private/server.key > /etc/ssl/certs/server.pem
 
-# Taken from https://github.com/nginxinc/docker-nginx/blob/7d7c67f2eaa6b2b32c718ba9d93f152870513c7c/mainline/stretch/Dockerfile
+# ---- Taken from https://github.com/nginxinc/docker-nginx/blob/7d7c67f2eaa6b2b32c718ba9d93f152870513c7c/mainline/stretch/Dockerfile
+# Considered, but not followed https://stackoverflow.com/questions/46332919/combining-php-fpm-with-nginx-in-one-dockerfile
 ENV NGINX_VERSION 1.15.11-1~stretch
 ENV NJS_VERSION   1.15.11.0.3.0-1~stretch
 
@@ -102,4 +103,20 @@ EXPOSE 80
 
 STOPSIGNAL SIGTERM
 
-CMD ["nginx", "-g", "daemon off;"]
+# CMD ["nginx", "-g", "daemon off;"]
+
+# --- More configuration
+# RUN printf "<?php\nphpinfo();\n?>\n" > /usr/share/nginx/html/info.php
+
+# RUN cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
+# RUN sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g' /usr/local/etc/php/php.ini
+
+# RUN sed -i 's/;listen.owner = www-data/listen.owner = nginx/g' /usr/local/etc/php-fpm.d/www.conf
+# RUN sed -i 's/;listen.group = www-data/listen.group = nginx/g' /usr/local/etc/php-fpm.d/www.conf
+
+WORKDIR /usr/share/nginx/html
+
+RUN printf '#!/bin/bash\n{ nginx -g "daemon off;"; } &\n{ php-fpm; } &\nwait -n\nkill 0\n' > /tmp/startup.sh
+RUN chmod +x /tmp/startup.sh
+
+CMD ["/tmp/startup.sh"]

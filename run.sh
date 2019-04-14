@@ -12,6 +12,7 @@ containers_exec () {
 case $1 in
   build)
     docker-compose down && docker-compose build && docker-compose up -d && docker-compose ps
+    curl http://localhost
     ;;
   build-no-cache)
     docker-compose down && docker-compose build --no-cache && docker-compose up -d && docker-compose ps
@@ -35,12 +36,23 @@ case $1 in
 
     docker logs -f $container
     ;;
+  test_specific)
+    docker image pull php:7.3.4-fpm-stretch
+    docker stop php-nginx 2>/dev/null
+    docker rm php-nginx 2>/dev/null
+    docker build -f Dockerfile-php-nginx -t php-nginx-image .
+    docker run -itd -p 9100:80 -h php-nginx --name php-nginx -v "$PWD/README.md":/tmp/README.md php-nginx-image
+    # docker run -itd -p 9100:80 -h php-nginx --name php-nginx -v "$PWD/README.md":/tmp/README.md -v "$PWD/php-nginx/default.conf":/etc/nginx/conf.d/default.conf php-nginx-image
+    docker ps
+    docker exec -it php-nginx /bin/bash
+    ;;
   *)
     echo 'Usage:
     build - down & build & up docker containers from Dockerfile
     build-no-cache - down & build --no-cache && up docker containers from Dockerfile
     exec - bash login to all containers one by one
     ps - list running docker containers
-    logs - read logs'
+    logs - read logs
+    test_specific - test specific container outside of docker-compose'
     ;;
 esac
