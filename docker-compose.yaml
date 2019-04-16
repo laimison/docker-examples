@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 
 services:
   nginx-reverse:
@@ -14,6 +14,12 @@ services:
     volumes:
       - ./nginx-reverse/html:/usr/share/nginx/html
       - ./nginx-reverse/conf.d:/etc/nginx/conf.d
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 0m15s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
   php-apache:
     container_name: php-apache
     hostname: php-apache
@@ -30,6 +36,12 @@ services:
       - ./php-apache/default-ssl.conf:/etc/apache2/sites-available/default-ssl.conf
       - ./php-apache/000-default.conf:/etc/apache2/sites-available/000-default.conf
       - ./php-apache/ssl.conf:/etc/apache2/mods-available/ssl.conf
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/php-apache/"]
+      interval: 0m15s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
   php-nginx:
     container_name: php-nginx
     hostname: php-nginx
@@ -45,3 +57,17 @@ services:
       - ./php-nginx/php.init:/usr/local/etc/php/php.ini
       - ./php-nginx/www.conf:/usr/local/etc/php-fpm.d/www.conf
       - ./php-nginx/default.conf:/etc/nginx/conf.d/default.conf
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/php-nginx/"]
+      interval: 0m15s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+  # https://hub.docker.com/r/willfarrell/autoheal/
+  autoheal:
+    restart: always
+    image: willfarrell/autoheal:v0.7.0
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
