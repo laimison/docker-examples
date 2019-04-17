@@ -54,7 +54,7 @@ services:
       - 9004:443
     volumes:
       - ./php-nginx/html:/usr/share/nginx/html
-      - ./php-nginx/php.init:/usr/local/etc/php/php.ini
+      - ./php-nginx/php.ini:/usr/local/etc/php/php.ini
       - ./php-nginx/www.conf:/usr/local/etc/php-fpm.d/www.conf
       - ./php-nginx/default.conf:/etc/nginx/conf.d/default.conf
     healthcheck:
