@@ -1,5 +1,7 @@
 version: '3.4'
 
+# docker-compose build && docker-compose down && docker-compose up --detach && docker-compose ps
+
 services:
   nginx-reverse:
     container_name: nginx-reverse

@@ -1,0 +1,23 @@
+version: '3.5'
+
+# docker-compose build && docker-compose down && docker-compose up --detach && docker-compose ps && docker logs controller
+
+services:
+  container:
+    container_name: container
+    hostname: container
+    image: ubuntu
+    command: >
+      bash -c "tail -F /dev/null"
+  controller:
+    privileged: true
+    container_name: controller
+    hostname: controller
+    build:
+      context: .
+      dockerfile: Dockerfile-controller
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    command: >
+      bash -c "docker exec container hostname
+      ; tail -F /dev/null"
